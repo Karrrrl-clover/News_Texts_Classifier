@@ -24,7 +24,11 @@ from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 
 from app.config import config_map
-from app.v1.predict import model_bp
+
+from app.v1.predict import model_bp_v1
+from app.v2.predict import model_bp_v2
+from app.v3.predict import model_bp_v3
+from app.v4.predict import model_bp_v4
 from app.extensions import thy_extension
 
 
@@ -43,7 +47,7 @@ def create_app() -> Flask:
     thy_extension.init_app(app.config['MODEL_PATH'])
 
     # 注册业务蓝图
-    app.register_blueprint(model_bp)
+    app.register_blueprint(model_bp_v1)
 
     # 注册钩子函数
     register_handlers(app)

@@ -9,7 +9,7 @@ from app.extensions import thy_extension
 from src.data_pre import cut_zh_words
 
 # 创建蓝图对象
-model_bp = Blueprint('models', __name__, url_prefix='/api/v1')
+model_bp_v1 = Blueprint('models', __name__, url_prefix='/api/v1')
 
 
 # @model_bp.before_request
@@ -19,7 +19,7 @@ model_bp = Blueprint('models', __name__, url_prefix='/api/v1')
 #     g.class_labels = thy_extension.class_labels
 
 
-@model_bp.route('/predict', methods=['GET', 'POST'])
+@model_bp_v1.route('/predict', methods=['GET', 'POST'])
 def text_clf_predict():
     """文本分类预测"""
     # silent=True - 如果解析 JSON 失败不抛出异常而是返回 None

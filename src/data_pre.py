@@ -60,14 +60,18 @@ def cut_zh_words(text: str) -> str:
     return ''
 
 
-def clean_data():
+def rf_clean_data(read_load,save_load):
     """程序入口"""
-    df = pd.read_csv(Config.train_raw_file, sep='\t', names=['text', 'label'])
+    df = pd.read_csv(read_load, sep='\t', names=['text', 'label'])
     df['text'] = df.text.map(cut_zh_words)
-    df.query('text != ""').to_csv(Config.train_pre_file, index=False)
-    df = pd.read_csv(Config.valid_raw_file, sep='\t', names=['text', 'label'])
+    df.query('text != ""').to_csv(save_load, index=False,header=False)
+
+
+
+def ft_clean_data(read_load,save_load):
+    df = pd.read_csv(read_load, sep='\t', names=['text', 'label'])
     df['text'] = df.text.map(cut_zh_words)
-    df.query('text != ""').to_csv(Config.valid_pre_file, index=False)
-    df = pd.read_csv(Config.test_raw_file, sep='\t', names=['text', 'label'])
-    df['text'] = df.text.map(cut_zh_words)
-    df.query('text != ""').to_csv(Config.test_pre_file, index=False)
+    df = df.query('text != ""')
+    df['label'] = df.label.map(lambda x: f'__label__{x}')
+    df['result'] = df.label + ' ' + df.text
+    df['result'].to_csv(save_load, index=False, header=False)

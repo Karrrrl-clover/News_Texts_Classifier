@@ -24,5 +24,18 @@ class Config:
     test_pre_file:   Path = BASE_DIR / 'data/pre' / 'tmf_test.txt'
     valid_pre_file:  Path = BASE_DIR / 'data/pre' / 'tmf_valid.txt'
 
+    fasttext_trian_file: Path = BASE_DIR / 'data/pre' / 'ft_trian.txt'
+    fasttext_test_file: Path = BASE_DIR / 'data/pre' / 'ft_test.txt'
+
+
+
     pkl_model_file:  Path = BASE_DIR / 'models' / 'text-clf-model.pkl'
-    onnx_model_file: Path = BASE_DIR / 'models' / 'text-clf-model.onnx'
+    ftz_model_file:  Path = BASE_DIR / 'models' / 'text-clf-model.ftz'
+    bert_models:  Path = BASE_DIR / 'models' / 'bert_models'
+
+
+
+
+
+
+    # onnx_model_file: Path = BASE_DIR / 'models' / 'text-clf-model.onnx'

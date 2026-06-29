@@ -18,9 +18,10 @@ class BaseConfig:
     SECRET_KEY = os.getenv('SECRET_KEY', '82ccc7debfad504e2e026c0c14e8721e17f9c4d884bfb94e32247a0cc3abf5e2')
 
     # 模型持久化文件路径
-    MODEL_v1_PATH = BASE_DIR / 'models' / 'text-clf-model.pkl'
-    MODEL_v2_PATH = BASE_DIR / 'models' / 'text-clf-model.ftz'
-    MODEL_v3_PATH = BASE_DIR / 'models' / 'bert_models'
+    MODEL_V1_PATH = BASE_DIR / 'models' / 'text-clf-model.pkl'
+    MODEL_V2_PATH = BASE_DIR / 'models' / 'text-clf-model.ftz'
+    MODEL_V3_PATH = BASE_DIR / 'models' / 'bert_models'
+
 
 
 class DevelopmentConfig(BaseConfig):
@@ -53,6 +54,7 @@ class ProductionConfig(BaseConfig):
         'pool_recycle': 3600,
         'max_overflow': 20
     }
+
 
 
 # 不同环境对应的配置类

@@ -29,6 +29,7 @@ from app.v1.predict import model_bp_v1
 from app.v2.predict import model_bp_v2
 from app.v3.predict import model_bp_v3
 from app.v4.predict import model_bp_v4
+
 from app.extensions import thy_extension
 
 
@@ -39,15 +40,20 @@ def create_app() -> Flask:
     # 动态加载环境配置
     env = os.getenv('FLASK_ENV', 'production')
     app.config.from_object(config_map[env]())
+
     # print(app.config)
 
     # 将组件动态绑定到当前 app
     # db.init_app(app)
     # redis_client.init_app(app)
-    thy_extension.init_app(app.config['MODEL_PATH'])
+
+    thy_extension.init_app(rf = app.config['MODEL_V1_PATH'],ft = app.config['MODEL_V2_PATH'],bert = app.config['MODEL_V3_PATH'])
 
     # 注册业务蓝图
     app.register_blueprint(model_bp_v1)
+    app.register_blueprint(model_bp_v2)
+    app.register_blueprint(model_bp_v3)
+    app.register_blueprint(model_bp_v4)
 
     # 注册钩子函数
     register_handlers(app)
@@ -67,19 +73,19 @@ def register_handlers(app: Flask):
     #         if not token:
     #             return jsonify({'code': 401, 'msg': '请提供身份认证信息'}), 401
 
-    @app.after_request
-    def add_cors_headers(response):
-        # 动态修改 HTTP 头，解决跨域问题
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        return response
-
-    @app.errorhandler(Exception)
-    def handle_exception(e):
-        # 拦截标准 HTTP 错误（如：4xx 错误）
-        if isinstance(e, HTTPException):
-            return jsonify({'code': e.code, 'message': e.description}), e.code
-
-        # 拦截业务层未捕获的异常
-        return jsonify({'code': 500, 'message': '服务器维护中请稍后尝试'}), 500
+    # @app.after_request
+    # def add_cors_headers(response):
+    #     # 动态修改 HTTP 头，解决跨域问题
+    #     response.headers['Access-Control-Allow-Origin'] = '*'
+    #     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    #     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    #     return response
+    #
+    # @app.errorhandler(Exception)
+    # def handle_exception(e):
+    #     # 拦截标准 HTTP 错误（如：4xx 错误）
+    #     if isinstance(e, HTTPException):
+    #         return jsonify({'code': e.code, 'message': e.description}), e.code
+    #
+    #     # 拦截业务层未捕获的异常
+    #     return jsonify({'code': 500, 'message': '服务器维护中请稍后尝试'}), 500

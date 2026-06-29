@@ -10,18 +10,18 @@ IDE:PyCharm
 """
 from flask import Blueprint,g,request
 from app.extensions import thy_extension
-from src.data_pre import cut_zh_words
+import torch
 
 # 创建蓝图对象
-model_bp_v3 = Blueprint('models', __name__, url_prefix='/api/v3')
+model_bp_v3 = Blueprint('models_v3', __name__, url_prefix='/api/v3')
 
 
 
 @model_bp_v3.before_request
 def before_request():
     """每个请求进来时把启动时加载好的模型单例安全地绑定到当前请求的 g 对象上"""
-    g.model = thy_extension.text_clf_model
-    g.tokenizer = thy_extension.bert_model
+    g.model = thy_extension.text_clf_model3
+    g.tokenizer = thy_extension.tokenizer
     g.class_labels = thy_extension.class_labels
 
 
@@ -39,4 +39,12 @@ def text_clf_predict():
         return {'code': -10, 'message': '请提供要分类的文本内容'}
 
 
-    return {'code': 0, 'message': 'OK', 'label': ''}
+    inputs = g.tokenizer(text, return_tensors='pt', truncation=True, padding=True, max_length=32)
+    print(inputs)
+
+    y_hat = g.model(**inputs)
+    print(y_hat)
+
+    y_pred = y_hat.logits.argmax(dim=-1).item()
+
+    return {'label': g.class_labels[y_pred], 'code': 0, 'message': 'OK'}

@@ -25,7 +25,7 @@ def test_base_url():
 def test_predict_valid():
     """测试 /predict 接口"""
     resp = requests.post(
-        url=BASE_URL + '/api/v1/predict',
+        url=BASE_URL + '/api/v3/predict',
         headers={
             'Content-Type': 'application/json',
         },
@@ -33,6 +33,7 @@ def test_predict_valid():
             'text': '湖北省黄冈市09届高三年级期末考试试题',
         },
     )
+
     assert resp.status_code == 200
     result = resp.json()  # type: dict
     assert 'label' in result
@@ -43,7 +44,7 @@ def test_predict_valid():
 def test_predict_invalid():
     """测试 /predict 接口"""
     resp = requests.post(
-        url=BASE_URL + '/api/v1/predict',
+        url=BASE_URL + '/api/v3/predict',
         headers={
             'Content-Type': 'application/json',
         },
@@ -52,4 +53,4 @@ def test_predict_invalid():
     assert resp.status_code == 200
     result = resp.json()  # type: dict
     assert 'label' not in result
-    assert result.get('code') == -10 and result.get('message') != 'OK'
+    assert result.get('code') == -20 and result.get('message') != 'OK'

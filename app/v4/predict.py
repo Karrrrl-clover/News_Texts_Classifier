@@ -8,16 +8,20 @@ IDE:PyCharm
 描述:
     TODO:
 """
-from flask import Blueprint, request
+import pandas as pd
+from flask import Blueprint,g,request
 from src.llm import classify_text
+# from app import thy_extension
+
 # 创建蓝图对象
 
-model_bp_v4 = Blueprint('models', __name__, url_prefix='/api/v4')
+model_bp_v4 = Blueprint('models_v4', __name__, url_prefix='/api/v4')
 
 
-# @model_bp.before_request
+# @model_bp_v4.before_request
 # def before_request():
 #     """每个请求进来时把启动时加载好的模型单例安全地绑定到当前请求的 g 对象上"""
+#
 #     g.model = thy_extension.text_clf_model
 #     g.class_labels = thy_extension.class_labels
 
@@ -35,4 +39,6 @@ def text_clf_predict():
     if not text:
         return {'code': -10, 'message': '请提供要分类的文本内容'}
 
-    return {'code': 0, 'message': 'OK', 'label': classify_text(text)}
+    label = classify_text(text)
+
+    return {'code': 0, 'message': 'OK', 'label': label}

@@ -5,10 +5,10 @@ Author: 骆昊
 Version: 0.0.1
 """
 import sys
+import pandas as pd
 from pathlib import Path
-
-import requests
 import streamlit as st
+import requests
 from loguru import logger
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,31 +27,41 @@ logger.add(
     compression='zip',   # 当日志触发切分时旧的日志文件会被自动压缩
 )
 
-
-def get_class_label(text):
-    """获取类别标签"""
+def get_class_label(text, model):
+    """获取标签类别"""
     try:
         resp = requests.get(
-            url=f'{BASE_URL}/api/v1/predict',
-            headers={'content-type': 'application/json'},
-            json={'text': text},
+            url=BASE_URL + f"/api/{model}/predict",
+            headers={'Content-Type': 'application/json'},
+            json={'text':text},
         )
         result = resp.json()
+        print(result)
         if result['code'] == 0:
             return result['label']
         return result['message']
     except Exception as e:
         logger.error(str(e))
+        logger.critical(str(e))
         return ''
 
 
-st.write('## 投满分（文本分类专家）')
-content = st.text_input(label='请输入要分类的文本内容：')
+
+st.title('文本分类专家')
+label2path = {'RandomForest': 'v1', 'Fasttext': 'v2', 'Bert_zh_Chinese': 'v3', 'Deepseek': 'v4'}
+select_model = st.radio('请选择使用推理的模型',['RandomForest','Fasttext','Bert_zh_Chinese','Deepseek'])
+content = st.text_input(label = '',placeholder='请输入文本内容')
 ok_button = st.button('确定')
 
-if ok_button and content.strip():
-    class_label = get_class_label(content)
-    if class_label:
-        st.write(f'**分类结果**：{class_label}')
-    else:
-        st.error('服务器维护中，请稍后再尝试访问')
+upload_file = st.file_uploader('请上传文件')
+predict = []
+if upload_file is not None:
+    df = pd.read_csv(upload_file, sep='\t', names=['text', 'label'])
+    for sentence in df.text.values:
+        predict.append(get_class_label(sentence,model=label2path[select_model]))
+    df['result'] = pd.DataFrame({'result': predict})
+    st.dataframe(df)
+
+if ok_button and content.strip() and select_model:
+    class_label = get_class_label(content,model=label2path[select_model])
+    st.write(f'**分类结果**：{class_label}')

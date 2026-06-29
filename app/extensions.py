@@ -9,7 +9,6 @@ import torch
 import fasttext
 from src.config import Config
 from modelscope import AutoTokenizer,AutoModelForSequenceClassification
-from app.config import BaseConfig
 
 class TextClassifierExtension:
     """文本分类器扩展"""
@@ -29,19 +28,21 @@ class TextClassifierExtension:
             'cpu'
         )
 
-    def init_app(self, model_path: str):
+    def init_app(self, rf,ft,bert):
         print('===== [extensions] 正在加载文本分类模型 =====')
         if not self.text_clf_model1:
-            self.text_clf_model1 = joblib.load(BaseConfig.MODEL_v1_PATH)
+            self.text_clf_model1 = joblib.load(rf)
             self.class_labels = open(Config.class_file, encoding='utf-8').read().strip().splitlines()
 
         if not self.text_clf_model2:
-            self.text_clf_model2 = fasttext.load_model(str(BaseConfig.MODEL_v2_PATH))
+            self.text_clf_model2 = fasttext.load_model(str(ft))
             self.class_labels = open(Config.class_file, encoding='utf-8').read().strip().splitlines()
 
         if not self.text_clf_model3:
-            self.tokenizer = AutoTokenizer.from_pretrained(BaseConfig.MODEL_v3_PATH)
-            self.text_clf_model3 = AutoModelForSequenceClassification(BaseConfig.MODEL_v3_PATH)
+            self.tokenizer = AutoTokenizer.from_pretrained(bert)
+
+            self.text_clf_model3 = AutoModelForSequenceClassification.from_pretrained(bert)
+
             self.class_labels = open(Config.class_file, encoding='utf-8').read().strip().splitlines()
 
 

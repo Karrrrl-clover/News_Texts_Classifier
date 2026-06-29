@@ -8,19 +8,19 @@ IDE:PyCharm
 描述:
     TODO:
 """
-from flask import Blueprint, request
+from flask import Blueprint, g,request
 from app.extensions import thy_extension
 from src.data_pre import cut_zh_words
 
 # 创建蓝图对象
-model_bp_v2 = Blueprint('models', __name__, url_prefix='/api/v2')
+model_bp_v2 = Blueprint('models_v2', __name__, url_prefix='/api/v2')
 
 
-# @model_bp.before_request
-# def before_request():
-#     """每个请求进来时把启动时加载好的模型单例安全地绑定到当前请求的 g 对象上"""
-#     g.model = thy_extension.text_clf_model
-#     g.class_labels = thy_extension.class_labels
+@model_bp_v2.before_request
+def before_request():
+    """每个请求进来时把启动时加载好的模型单例安全地绑定到当前请求的 g 对象上"""
+    g.model = thy_extension.text_clf_model2
+    g.class_labels = thy_extension.class_labels
 
 
 @model_bp_v2.route('/predict', methods=['GET', 'POST'])
@@ -37,6 +37,6 @@ def text_clf_predict():
         return {'code': -10, 'message': '请提供要分类的文本内容'}
 
     text = cut_zh_words(text)
-    y_pred,_= thy_extension.text_clf_model.predict([text])
+    y_pred,_= thy_extension.text_clf_model2.predict([text])
     label_index = int(y_pred[0][0][9:])
-    return {'code': 0, 'message': 'OK', 'label': thy_extension.class_labels[y_pred[0]]}
+    return {'code': 0, 'message': 'OK', 'label': thy_extension.class_labels[label_index]}

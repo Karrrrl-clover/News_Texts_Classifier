@@ -23,12 +23,25 @@ def classify_text(text_to_classify: str):
     3. 若输入不属于任何类别或模糊，回答“不认识（不在预设分类之中）”。
     4. 只输出类别名称，不附加任何解释。
 
-    示例：
-    文本：近几年来，日元持续贬值，已经严重影响到了日本民众的生活 → finance
-    文本：今年中高考圆满结束，各位广大考生妙笔生花，蟾宫折桂 → education
-    文本：著名歌手周杰伦演唱会现场，热闹非凡，观众情绪高涨 → entertainment
-    文本：昨天世界杯，法国对阵挪威，上演帽子戏法，最终法国4:1挪威 → sports
-    文本：你好，早上好 → 不认识（不在预设分类之中）
+    示例：1
+    用户输入：近几年来，日元持续贬值，已经严重影响到了日本民众的生活 
+    回答： finance
+    
+    示例：2
+    用户输入：今年中高考圆满结束，各位广大考生妙笔生花，蟾宫折桂 
+    回答： education
+    
+    示例：3
+    文本：著名歌手周杰伦演唱会现场，热闹非凡，观众情绪高涨 
+    回答： entertainment
+    
+    示例：4
+    用户输入：昨天世界杯，法国对阵挪威，上演帽子戏法，最终法国4:1挪威 
+    回答： sports
+    
+    示例：5
+    用户输入：你好，早上好 
+    回答：不认识（不在预设分类之中）
     '''
 
     # API接口的地址
@@ -64,11 +77,7 @@ def classify_text(text_to_classify: str):
     )
     if resp.status_code == 200:
         # 解析JSON数据获取API接口响应内容
-        print(resp.json()['choices'][0]['message']['content'])
+        return resp.json()['choices'][0]['message']['content']
+
     else:
-        print(resp.status_code)
-
-
-if __name__ == '__main__':
-    classify_text('湖人队在季后赛夺冠')
-    classify_text('你好，你是谁，你为啥在这里')
+        return resp.status_code

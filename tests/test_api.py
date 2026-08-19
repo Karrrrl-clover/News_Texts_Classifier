@@ -5,7 +5,7 @@ test_api - API 接口测试
 
 conda install pytest -c conda-forge
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 import pytest

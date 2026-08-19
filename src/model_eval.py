@@ -1,7 +1,7 @@
 """
 model_eval - 模型评估
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 import time
@@ -30,7 +30,7 @@ def rf_evaluate_model(read_file,model_file):
         total_accuracy += accuracy_score(y_test, y_pred)
         total_duration += end - start
 
-    print(f'Accuracy: {total_accuracy / 100:.2%}')
+    print(f'Accuracy（RandomForest预测准确率：）: {total_accuracy / 100:.2%}')
     print(f'Duration: {total_duration / 100:.3f}')
 
 
@@ -50,7 +50,7 @@ def ft_evaluate_model(read_file,model_file):
         total_accuracy += accuracy_score(y_test, y_pred)
         total_duration += end - start
 
-    print(f'Accuracy: {total_accuracy / 100:.2%}')
+    print(f'Accuracy（FastText预测准确率：）: {total_accuracy / 100:.2%}')
     print(f'Duration: {total_duration / 100:.3f}')
 
 
@@ -62,8 +62,8 @@ def bert_evaluate_model(read_file,model_file):
     model = AutoModelForSequenceClassification.from_pretrained(model_file)
 
     accuracy = 0.0
-    for _ in range(1000):
-        temp = df.sample(n=10)
+    for _ in range(100):
+        temp = df.sample(n=100)
         inputs = tokenizer(temp.text.tolist(), return_tensors='pt', truncation=True, padding=True, max_length=32)
 
         with torch.inference_mode():
@@ -72,4 +72,5 @@ def bert_evaluate_model(read_file,model_file):
 
             accuracy += accuracy_score(temp.label.values, y_pred.numpy())
 
-    print(f'模型的准确率为：{accuracy/1000:.4f}')
+    print(f'Accuracy（Bert微调预测准确率：）：{accuracy / 100:.4f}')
+    print(f'Duration: {accuracy / 100:.3f}')

@@ -1,7 +1,7 @@
 """
 model_train - 训练模型
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 import joblib
@@ -105,6 +105,8 @@ class TMFDataset(Dataset):
             'attention_mask': inputs['attention_mask'].squeeze(0),
             'label': torch.tensor(label, dtype=torch.long)
         }
+
+
 def bert_trian_model():
     """Bert预训练模型微调"""
     device = torch.device(
@@ -147,5 +149,5 @@ def bert_trian_model():
             total_loss += loss.item()
 
         print(f'Epoch[{epoch:>2d}/{EPOCHS}], Loss: {total_loss / len(train_loader):.4f}')
-    model.save_model_pretrained(str(Config.bert_model_file))
-    tokenizer.save_model_pretrained(str(Config.bert_model_file))
+    model.save_model_pretrained(str(Config.bert_models))
+    tokenizer.save_model_pretrained(str(Config.bert_models))

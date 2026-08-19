@@ -4,7 +4,7 @@ data_eda - 探索性数据分析
 pip list --format=freeze > requirements.txt
 pip install -r requirements.txt
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 import pandas as pd

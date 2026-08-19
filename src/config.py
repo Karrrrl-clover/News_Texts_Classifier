@@ -1,7 +1,7 @@
 """
 config - 训练模型相关配置类
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 from pathlib import Path

@@ -3,7 +3,7 @@ data_pre - 数据预处理
 
 顺序：① 正则表达式剔除无效字符 - ② 中文分词 - ③ 去掉停用词
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 import logging

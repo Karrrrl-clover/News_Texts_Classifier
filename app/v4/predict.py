@@ -3,7 +3,7 @@
 文件:predict.py
 IDE:PyCharm
 时间:2026/6/28 17:55
-作者:Kclover
+作者:KClover
 
 描述:
     TODO:

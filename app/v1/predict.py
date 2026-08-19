@@ -1,7 +1,7 @@
 """
 predict - API 接口实现
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 from flask import Blueprint,g,request

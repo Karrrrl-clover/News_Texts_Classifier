@@ -1,7 +1,7 @@
 """
 extensions - 扩展功能
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 import joblib

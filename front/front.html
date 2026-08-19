@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文本分类专家 · 自适应</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ---------- 全局重置 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f2f4f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        /* ---------- 主容器：自适应宽度 ---------- */
+        .app-wrapper {
+            width: 100%;
+            max-width: 100%;          /* 宽度填满视口 */
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.04), 0 2px 12px rgba(0, 0, 0, 0.02);
+            padding: 24px 28px 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 480px;
+            transition: padding 0.2s ease;
+            height: auto;
+            max-height: 98vh;
+        }
+
+        /* ---------- 头部 ---------- */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .app-header .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-header .logo i {
+            font-size: 22px;
+            color: #4f6ef7;
+            background: #eef1ff;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-header .logo h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            letter-spacing: -0.3px;
+        }
+
+        .app-header .logo .badge {
+            background: #4f6ef7;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 40px;
+            margin-left: 2px;
+        }
+
+        .app-header .status {
+            font-size: 12px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 4px 12px 4px 8px;
+            border-radius: 40px;
+        }
+
+        .app-header .status .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            display: inline-block;
+        }
+
+        /* ---------- 结果展示区：自适应高度 ---------- */
+        .result-area {
+            flex: 1 1 auto;
+            min-height: 120px;
+            max-height: 50vh;         /* 自适应视口高度 */
+            overflow-y: auto;
+            margin-bottom: 14px;
+            border-radius: 16px;
+            background: #fafbff;
+            border: 1px solid #eef0f4;
+            padding: 0;
+        }
+
+        .result-area .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 120px;
+            color: #b0b8d0;
+            font-size: 13px;
+            gap: 6px;
+        }
+
+        .result-area .empty-state i {
+            font-size: 32px;
+            color: #d5dbe8;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .result-table thead th {
+            position: sticky;
+            top: 0;
+            background: #f1f4f9;
+            color: #475569;
+            font-weight: 600;
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1.5px solid #e2e6ef;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .result-table tbody td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #eef0f4;
+            vertical-align: top;
+            line-height: 1.5;
+            color: #1e293b;
+            font-size: 13px;
+        }
+
+        .result-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .result-table .col-idx {
+            width: 30px;
+            color: #94a3b8;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .result-table .col-text {
+            max-width: 200px;
+            word-break: break-word;
+        }
+
+        .result-table .col-label {
+            font-weight: 500;
+            color: #1a2b7a;
+            white-space: nowrap;
+        }
+
+        .result-table .col-label.error {
+            color: #e74c5e;
+        }
+
+        /* ---------- 聊天输入框容器 ---------- */
+        .chat-input-wrapper {
+            background: #eef3fc;
+            border-radius: 24px;
+            padding: 12px 16px 8px 16px;
+            transition: background 0.2s;
+            margin-bottom: 6px;
+            flex-shrink: 0;
+        }
+
+        .chat-input-wrapper:focus-within {
+            background: #e8eefa;
+        }
+
+        .chat-input-wrapper textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            resize: none;
+            font-family: inherit;
+            font-size: 15px;
+            color: #0f172a;
+            padding: 4px 0 8px 0;
+            min-height: 28px;
+            max-height: 120px;
+            line-height: 1.6;
+            outline: none;
+            transition: height 0.1s ease;
+        }
+
+        .chat-input-wrapper textarea::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        /* ---------- 底部工具栏 ---------- */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        .toolbar .btn-tool {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 450;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .toolbar .btn-tool i {
+            font-size: 15px;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .toolbar .btn-tool:hover {
+            background: rgba(255, 255, 255, 0.5);
+            color: #1e293b;
+        }
+
+        .toolbar .btn-tool:hover i {
+            color: #4f6ef7;
+        }
+
+        .toolbar .btn-tool:active {
+            transform: scale(0.97);
+        }
+
+        .btn-attach {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 450;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn-attach i {
+            font-size: 15px;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .btn-attach:hover {
+            background: rgba(255, 255, 255, 0.5);
+            color: #1e293b;
+        }
+
+        .btn-attach:hover i {
+            color: #4f6ef7;
+        }
+
+        .btn-attach.has-file {
+            color: #4f6ef7;
+        }
+
+        .btn-attach.has-file i {
+            color: #4f6ef7;
+        }
+
+        .compare-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 8px 5px 12px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 450;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .compare-toggle:hover {
+            background: rgba(255, 255, 255, 0.5);
+            color: #1e293b;
+        }
+
+        .compare-toggle .toggle-track {
+            position: relative;
+            width: 32px;
+            height: 18px;
+            background: #d1d5db;
+            border-radius: 40px;
+            transition: background 0.3s ease;
+            flex-shrink: 0;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .compare-toggle .toggle-track .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: #ffffff;
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .compare-toggle.active .toggle-track {
+            background: #4f6ef7;
+        }
+
+        .compare-toggle.active .toggle-track .toggle-thumb {
+            transform: translateX(14px);
+        }
+
+        .compare-toggle .toggle-label {
+            font-size: 13px;
+            color: #64748b;
+            transition: color 0.2s;
+        }
+
+        .compare-toggle.active .toggle-label {
+            color: #4f6ef7;
+        }
+
+        /* ---- 模型选择下拉（多选） ---- */
+        .model-select-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .btn-model-select {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 450;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn-model-select i {
+            font-size: 15px;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .btn-model-select:hover {
+            background: rgba(255, 255, 255, 0.5);
+            color: #1e293b;
+        }
+
+        .btn-model-select:hover i {
+            color: #4f6ef7;
+        }
+
+        .btn-model-select .chevron {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-left: 2px;
+            transition: transform 0.2s;
+        }
+
+        .btn-model-select.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .model-dropdown {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 0;
+            min-width: 210px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.02);
+            padding: 6px 0;
+            display: none;
+            z-index: 100;
+            border: 1px solid #eef0f4;
+            overflow: hidden;
+        }
+
+        .model-dropdown.open {
+            display: block;
+        }
+
+        .model-dropdown .drop-header {
+            padding: 8px 16px 4px 16px;
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 4px;
+        }
+
+        .model-dropdown .drop-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 16px;
+            font-size: 13px;
+            color: #1e293b;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            font-family: inherit;
+            text-align: left;
+        }
+
+        .model-dropdown .drop-item:hover {
+            background: #f1f5f9;
+        }
+
+        .model-dropdown .drop-item .check-box {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            color: white;
+            font-size: 10px;
+        }
+
+        .model-dropdown .drop-item .check-box.checked {
+            background: #4f6ef7;
+            border-color: #4f6ef7;
+        }
+
+        .model-dropdown .drop-item .check-box.checked i {
+            display: block;
+        }
+
+        .model-dropdown .drop-item .check-box i {
+            display: none;
+            font-size: 10px;
+            color: white;
+        }
+
+        .model-dropdown .drop-item .model-icon {
+            width: 18px;
+            font-size: 14px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .model-dropdown .drop-item .model-name {
+            flex: 1;
+        }
+
+        .model-count-badge {
+            background: #4f6ef7;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 0 8px;
+            border-radius: 40px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 18px;
+            margin-left: 2px;
+        }
+
+        .model-count-badge.hidden {
+            display: none;
+        }
+
+        .toolbar .divider {
+            width: 1px;
+            height: 22px;
+            background: #e2e6ef;
+            margin: 0 2px;
+            flex-shrink: 0;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* ---------- 底部状态 ---------- */
+        .footer-status {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 12px;
+            border-top: 1px solid #eef0f4;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+
+        .footer-status .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            background: #94a3b8;
+            transition: background 0.3s;
+        }
+
+        .footer-status .status-dot.success {
+            background: #22c55e;
+        }
+
+        .footer-status .status-dot.error {
+            background: #ef4444;
+        }
+
+        .footer-status .status-dot.loading {
+            background: #f59e0b;
+            animation: pulse-dot 1s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        #apiUrlInput {
+            display: none;
+        }
+
+        /* ---------- 滚动条 ---------- */
+        .result-area::-webkit-scrollbar {
+            width: 4px;
+        }
+        .result-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .result-area::-webkit-scrollbar-thumb {
+            background: #d5dbe8;
+            border-radius: 20px;
+        }
+        .result-area::-webkit-scrollbar-thumb:hover {
+            background: #b8c0d4;
+        }
+
+        /* ---------- 响应式适配 ---------- */
+        @media (max-width: 768px) {
+            .app-wrapper {
+                padding: 16px 14px 14px;
+                border-radius: 20px;
+                min-height: 400px;
+            }
+            .app-header .logo h1 {
+                font-size: 17px;
+            }
+            .app-header .logo i {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+            .chat-input-wrapper {
+                padding: 10px 12px 6px 12px;
+                border-radius: 20px;
+            }
+            .chat-input-wrapper textarea {
+                font-size: 14px;
+                padding: 2px 0 6px 0;
+                min-height: 24px;
+            }
+            .toolbar {
+                gap: 2px;
+                padding-top: 4px;
+            }
+            .toolbar .btn-tool,
+            .btn-attach,
+            .compare-toggle,
+            .btn-model-select {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            .toolbar .btn-tool i,
+            .btn-attach i,
+            .compare-toggle i,
+            .btn-model-select i {
+                font-size: 13px;
+            }
+            .compare-toggle .toggle-track {
+                width: 28px;
+                height: 16px;
+            }
+            .compare-toggle .toggle-track .toggle-thumb {
+                width: 12px;
+                height: 12px;
+                top: 2px;
+                left: 2px;
+            }
+            .compare-toggle.active .toggle-track .toggle-thumb {
+                transform: translateX(12px);
+            }
+            .model-dropdown {
+                min-width: 180px;
+                left: -10px;
+            }
+            .result-area {
+                min-height: 80px;
+                max-height: 40vh;
+            }
+            .result-area .empty-state {
+                height: 80px;
+                font-size: 12px;
+            }
+            .result-area .empty-state i {
+                font-size: 26px;
+            }
+            .result-table .col-text {
+                max-width: 120px;
+            }
+            .result-table thead th,
+            .result-table tbody td {
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+            .footer-status {
+                font-size: 11px;
+                padding-top: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .toolbar .btn-tool .label-text,
+            .btn-attach .label-text,
+            .compare-toggle .toggle-label,
+            .btn-model-select .label-text {
+                display: none;
+            }
+            .toolbar .btn-tool {
+                padding: 4px 8px;
+            }
+            .btn-attach {
+                padding: 4px 8px;
+            }
+            .compare-toggle {
+                padding: 4px 6px;
+            }
+            .btn-model-select {
+                padding: 4px 8px;
+            }
+            .model-dropdown {
+                min-width: 160px;
+                left: -6px;
+            }
+            .result-table .col-text {
+                max-width: 70px;
+            }
+            .result-table .col-label {
+                white-space: normal;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .app-wrapper {
+                padding: 32px 48px 28px;
+                border-radius: 36px;
+            }
+            .result-table .col-text {
+                max-width: 400px;
+            }
+            .result-area {
+                max-height: 55vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+
+        <!-- ===== 头部 ===== -->
+        <div class="app-header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <h1>文本分类专家</h1>
+                <span class="badge">v1.0</span>
+            </div>
+            <div class="status">
+                <span class="dot"></span>
+                <span id="headerStatusText">在线</span>
+            </div>
+        </div>
+
+        <!-- ===== 结果展示区 ===== -->
+        <div class="result-area" id="resultArea">
+            <!-- 默认会由JS填充示例数据 -->
+        </div>
+
+        <!-- ===== 聊天输入框 ===== -->
+        <div class="chat-input-wrapper">
+            <textarea id="messageInput" rows="1" placeholder="发消息…" spellcheck="false"></textarea>
+
+            <!-- ===== 底部工具栏 ===== -->
+            <div class="toolbar">
+
+                <!-- 1. 加号（上传文件） -->
+                <button class="btn-attach" id="attachBtn" title="上传文件">
+                    <i class="fas fa-plus"></i>
+                    <span class="label-text">上传文件</span>
+                </button>
+                <input type="file" id="fileInput" accept=".txt,.csv" />
+
+                <span class="divider"></span>
+
+                <!-- 2. 模型对比开关 -->
+                <div class="compare-toggle" id="compareToggle" title="开启后可选择多个模型进行对比">
+                    <span class="toggle-track">
+                        <span class="toggle-thumb"></span>
+                    </span>
+                    <span class="toggle-label">对比</span>
+                </div>
+
+                <span class="divider"></span>
+
+                <!-- 3. 模型选择下拉（多选） -->
+                <div class="model-select-wrapper">
+                    <button class="btn-model-select" id="modelSelectBtn">
+                        <i class="fas fa-brain"></i>
+                        <span class="label-text" id="currentModelLabel">模型</span>
+                        <span class="model-count-badge hidden" id="modelCountBadge">0</span>
+                        <i class="fas fa-chevron-down chevron"></i>
+                    </button>
+                    <div class="model-dropdown" id="modelDropdown">
+                        <div class="drop-header">选择对比模型</div>
+                        <button class="drop-item" data-model="RandomForest">
+                            <span class="check-box"><i class="fas fa-check"></i></span>
+                            <span class="model-icon"><i class="fas fa-tree"></i></span>
+                            <span class="model-name">RandomForest</span>
+                        </button>
+                        <button class="drop-item" data-model="Fasttext">
+                            <span class="check-box"><i class="fas fa-check"></i></span>
+                            <span class="model-icon"><i class="fas fa-rocket"></i></span>
+                            <span class="model-name">Fasttext</span>
+                        </button>
+                        <button class="drop-item" data-model="Bert_zh_Chinese">
+                            <span class="check-box"><i class="fas fa-check"></i></span>
+                            <span class="model-icon"><i class="fas fa-language"></i></span>
+                            <span class="model-name">Bert_zh_Chinese</span>
+                        </button>
+                        <button class="drop-item" data-model="Deepseek">
+                            <span class="check-box"><i class="fas fa-check"></i></span>
+                            <span class="model-icon"><i class="fas fa-brain"></i></span>
+                            <span class="model-name">Deepseek</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 右侧：发送按钮 -->
+                <span class="divider" style="margin-left:auto;"></span>
+                <button class="btn-tool" id="sendBtn" style="color:#4f6ef7;font-weight:600;" title="发送 (Ctrl+Enter)">
+                    <i class="fas fa-paper-plane" style="color:#4f6ef7;"></i>
+                    <span class="label-text">发送</span>
+                </button>
+
+            </div>
+        </div>
+
+        <!-- ===== 底部状态 ===== -->
+        <div class="footer-status">
+            <input type="url" id="apiUrlInput" value="http://127.0.0.1:8080" style="display:none;" />
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">就绪</span>
+            <span style="margin-left:auto;color:#c5cbd8;font-size:11px;">Ctrl+Enter 发送</span>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ---------- DOM ----------
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const attachBtn = document.getElementById('attachBtn');
+            const fileInput = document.getElementById('fileInput');
+            const resultArea = document.getElementById('resultArea');
+            const compareToggle = document.getElementById('compareToggle');
+            const modelSelectBtn = document.getElementById('modelSelectBtn');
+            const modelDropdown = document.getElementById('modelDropdown');
+            const currentModelLabel = document.getElementById('currentModelLabel');
+            const modelCountBadge = document.getElementById('modelCountBadge');
+            const statusText = document.getElementById('statusText');
+            const statusDot = document.getElementById('statusDot');
+            const headerStatusText = document.getElementById('headerStatusText');
+            const apiUrlInput = document.getElementById('apiUrlInput');
+
+            // ---------- 配置 ----------
+            const ALL_MODELS = ['RandomForest', 'Fasttext', 'Bert_zh_Chinese', 'Deepseek'];
+            const MODEL_PATH_MAP = {
+                'RandomForest': 'v1',
+                'Fasttext': 'v2',
+                'Bert_zh_Chinese': 'v3',
+                'Deepseek': 'v4'
+            };
+
+            // ---------- 状态 ----------
+            let selectedFile = null;
+            let isProcessing = false;
+            let isCompareMode = false;
+            let selectedModels = [...ALL_MODELS];
+
+            // ---------- 状态管理 ----------
+            function setStatus(text, type) {
+                statusText.textContent = text;
+                headerStatusText.textContent = text;
+                statusDot.className = 'status-dot';
+                if (type === 'success') {
+                    statusDot.classList.add('success');
+                } else if (type === 'error') {
+                    statusDot.classList.add('error');
+                } else if (type === 'loading') {
+                    statusDot.classList.add('loading');
+                }
+            }
+
+            function updateFileUI() {
+                if (selectedFile) {
+                    const size = (selectedFile.size / 1024).toFixed(1);
+                    attachBtn.classList.add('has-file');
+                    attachBtn.innerHTML =
+                        `<i class="fas fa-plus"></i> <span class="label-text">${selectedFile.name} (${size}KB)</span>`;
+                } else {
+                    attachBtn.classList.remove('has-file');
+                    attachBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="label-text">上传文件</span>`;
+                }
+            }
+
+            function clearFile() {
+                selectedFile = null;
+                fileInput.value = '';
+                updateFileUI();
+            }
+
+            function readFileAsText(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = (e) => reject(e.target.error || new Error('读取文件失败'));
+                    reader.readAsText(file, 'UTF-8');
+                });
+            }
+
+            async function getTexts() {
+                let texts = [];
+                if (selectedFile) {
+                    const content = await readFileAsText(selectedFile);
+                    const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
+                    const firstLine = lines[0] || '';
+                    if (firstLine.includes('\t')) {
+                        texts = lines.map(line => line.split('\t')[0].trim()).filter(t => t);
+                    } else {
+                        texts = lines.map(line => line.trim());
+                    }
+                } else {
+                    const raw = messageInput.value;
+                    if (!raw.trim()) return [];
+                    texts = raw.split(/\r?\n/).filter(line => line.trim() !== '');
+                }
+                return texts;
+            }
+
+            async function predictSingle(text, baseUrl, modelPath) {
+                const url = `${baseUrl}/api/${modelPath}/predict`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text }),
+                });
+                if (!response.ok) {
+                    const errMsg = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errMsg}`);
+                }
+                const data = await response.json();
+                if (data.code === 0) {
+                    return data.label || '未知';
+                } else {
+                    throw new Error(data.message || '预测失败');
+                }
+            }
+
+            // ---------- 更新模型下拉UI ----------
+            function updateModelDropdownUI() {
+                const items = modelDropdown.querySelectorAll('.drop-item');
+                items.forEach(item => {
+                    const model = item.dataset.model;
+                    const checkBox = item.querySelector('.check-box');
+                    const isChecked = selectedModels.includes(model);
+                    checkBox.classList.toggle('checked', isChecked);
+                });
+                const count = selectedModels.length;
+                if (isCompareMode) {
+                    if (count === 0) {
+                        currentModelLabel.textContent = '请选择模型';
+                        modelCountBadge.classList.add('hidden');
+                    } else {
+                        currentModelLabel.textContent = `${count}个模型`;
+                        modelCountBadge.textContent = count;
+                        modelCountBadge.classList.remove('hidden');
+                    }
+                } else {
+                    const singleModel = selectedModels.length > 0 ? selectedModels[0] : ALL_MODELS[0];
+                    currentModelLabel.textContent = singleModel;
+                    modelCountBadge.classList.add('hidden');
+                }
+            }
+
+            function toggleModelSelection(model) {
+                const idx = selectedModels.indexOf(model);
+                if (idx > -1) {
+                    selectedModels.splice(idx, 1);
+                } else {
+                    selectedModels.push(model);
+                }
+                if (selectedModels.length === 0) {
+                    selectedModels.push(ALL_MODELS[0]);
+                }
+                updateModelDropdownUI();
+                if (isCompareMode) {
+                    setStatus(`对比模型: ${selectedModels.join(', ')}`, '');
+                }
+            }
+
+            // ---------- 渲染结果 ----------
+            function renderResults(rows, mode, modelList) {
+                if (!rows || rows.length === 0) {
+                    resultArea.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <span>暂无结果</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const displayModels = mode === 'compare' ? modelList : [];
+
+                let tableHtml = '<table class="result-table"><thead><tr>';
+                tableHtml += '<th class="col-idx">#</th>';
+                tableHtml += '<th class="col-text">预测内容</th>';
+                if (mode === 'single') {
+                    tableHtml += '<th class="col-label">预测结果</th>';
+                } else {
+                    displayModels.forEach(name => {
+                        tableHtml += `<th class="col-label">${name}</th>`;
+                    });
+                }
+                tableHtml += '</tr></thead><tbody>';
+
+                rows.forEach((row, idx) => {
+                    tableHtml += '<tr>';
+                    tableHtml += `<td class="col-idx">${idx + 1}</td>`;
+                    tableHtml += `<td class="col-text">${escapeHtml(row.text)}</td>`;
+
+                    if (mode === 'single') {
+                        const label = row.label || '—';
+                        const isError = row.success === false;
+                        tableHtml += `<td class="col-label ${isError ? 'error' : ''}">${escapeHtml(label)}</td>`;
+                    } else {
+                        displayModels.forEach(name => {
+                            const info = row[name];
+                            if (info) {
+                                const isError = info.success === false;
+                                const label = info.label || '—';
+                                tableHtml +=
+                                    `<td class="col-label ${isError ? 'error' : ''}">${escapeHtml(label)}</td>`;
+                            } else {
+                                tableHtml += `<td class="col-label" style="color:#94a3b8;">—</td>`;
+                            }
+                        });
+                    }
+                    tableHtml += '</tr>';
+                });
+
+                tableHtml += '</tbody></table>';
+                resultArea.innerHTML = tableHtml;
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '—';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function showEmptyState() {
+                resultArea.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-message"></i>
+                        <span>输入文本或上传文件，点击发送预测</span>
+                    </div>
+                `;
+            }
+
+            // ---------- 加载示例数据 ----------
+            function loadSampleData() {
+                const sampleRows = [
+                    { text: '从跟班到战友 灵兽伴你畅游传奇世界', label: 'game', success: true },
+                    { text: '你有随身听 我有随身看：掌上故事会', label: 'science', success: true },
+                    { text: '一封1968年的平信45.92万元成交', label: 'finance', success: true },
+                    { text: '女主人成功说服杀人躲避者自首', label: 'society', success: true },
+                    { text: 'NBA球员孙悦女友生活照 黑丝袜显美腿妖娆(图)', label: 'sports', success: true },
+                    { text: '卧龙电气：电机牵引变压器大增 蓄电池陷入低迷', label: 'politics', success: true },
+                    { text: '基金高管离职带来业绩地震', label: 'finance', success: true },
+                ];
+                renderResults(sampleRows, 'single', ['RandomForest']);
+            }
+
+            // ---------- 核心发送 ----------
+            async function handleSend() {
+                if (isProcessing) return;
+
+                let baseUrl = apiUrlInput.value.trim();
+                if (!baseUrl) { setStatus('请填写后端地址', 'error'); return; }
+                if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+
+                let texts;
+                try {
+                    texts = await getTexts();
+                } catch (err) {
+                    setStatus(`读取失败: ${err.message}`, 'error');
+                    return;
+                }
+                if (texts.length === 0) {
+                    setStatus('请输入文本或上传文件', 'error');
+                    return;
+                }
+
+                isProcessing = true;
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中';
+                setStatus(`处理中 0/${texts.length}`, 'loading');
+
+                try {
+                    if (isCompareMode) {
+                        const modelsToUse = selectedModels.length > 0 ? selectedModels : ALL_MODELS;
+                        const rows = [];
+                        let totalSuccess = 0,
+                            totalFail = 0;
+                        for (let i = 0; i < texts.length; i++) {
+                            const text = texts[i];
+                            const row = { text };
+                            const promises = modelsToUse.map(async (name) => {
+                                const path = MODEL_PATH_MAP[name];
+                                try {
+                                    const label = await predictSingle(text, baseUrl, path);
+                                    row[name] = { label, success: true };
+                                    totalSuccess++;
+                                } catch (err) {
+                                    row[name] = { label: `错误: ${err.message}`, success: false };
+                                    totalFail++;
+                                }
+                            });
+                            await Promise.all(promises);
+                            rows.push(row);
+                            setStatus(`对比中 ${i+1}/${texts.length} (成功 ${totalSuccess})`, 'loading');
+                        }
+                        renderResults(rows, 'compare', modelsToUse);
+                        if (totalFail === 0) {
+                            setStatus(`对比完成，共 ${texts.length} 条，${modelsToUse.length} 个模型`, 'success');
+                        } else {
+                            setStatus(`对比完成，成功 ${totalSuccess} 条，失败 ${totalFail} 条`, 'error');
+                        }
+                    } else {
+                        const singleModel = selectedModels.length > 0 ? selectedModels[0] : ALL_MODELS[0];
+                        const path = MODEL_PATH_MAP[singleModel];
+                        if (!path) { setStatus(`未知模型: ${singleModel}`, 'error'); return; }
+                        const results = [];
+                        let successCount = 0,
+                            failCount = 0;
+                        for (let i = 0; i < texts.length; i++) {
+                            const text = texts[i];
+                            try {
+                                const label = await predictSingle(text, baseUrl, path);
+                                results.push({ text, label, success: true });
+                                successCount++;
+                            } catch (err) {
+                                results.push({ text, label: `错误: ${err.message}`, success: false });
+                                failCount++;
+                            }
+                            setStatus(`预测中 ${i+1}/${texts.length} (成功 ${successCount})`, 'loading');
+                        }
+                        renderResults(results, 'single', [singleModel]);
+                        if (failCount === 0) {
+                            setStatus(`完成，共 ${results.length} 条`, 'success');
+                        } else {
+                            setStatus(`完成，成功 ${successCount} 条，失败 ${failCount} 条`, 'error');
+                        }
+                    }
+                } catch (err) {
+                    setStatus(`错误: ${err.message}`, 'error');
+                } finally {
+                    isProcessing = false;
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 发送';
+                }
+            }
+
+            // ---------- 清空 ----------
+            function handleClear() {
+                showEmptyState();
+                clearFile();
+                messageInput.value = '';
+                setStatus('已清空', '');
+                messageInput.style.height = 'auto';
+            }
+
+            function autoResize() {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+            }
+
+            // ---------- 对比开关 ----------
+            function toggleCompare() {
+                isCompareMode = !isCompareMode;
+                compareToggle.classList.toggle('active', isCompareMode);
+                if (isCompareMode) {
+                    if (selectedModels.length === 0) {
+                        selectedModels = [ALL_MODELS[0]];
+                    }
+                    setStatus(`对比模式已开启，已选 ${selectedModels.length} 个模型`, '');
+                } else {
+                    const singleModel = selectedModels.length > 0 ? selectedModels[0] : ALL_MODELS[0];
+                    setStatus(`单模型模式: ${singleModel}`, '');
+                }
+                updateModelDropdownUI();
+                closeAllDropdowns();
+            }
+
+            // ---------- 模型下拉 ----------
+            function toggleModelDropdown(e) {
+                e.stopPropagation();
+                const isOpen = modelDropdown.classList.contains('open');
+                closeAllDropdowns();
+                if (!isOpen) {
+                    modelDropdown.classList.add('open');
+                    modelSelectBtn.classList.add('open');
+                }
+            }
+
+            function closeAllDropdowns() {
+                modelDropdown.classList.remove('open');
+                modelSelectBtn.classList.remove('open');
+            }
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.model-select-wrapper')) {
+                    closeAllDropdowns();
+                }
+            });
+
+            // ---------- 事件绑定 ----------
+            sendBtn.addEventListener('click', handleSend);
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            });
+            messageInput.addEventListener('input', autoResize);
+
+            attachBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    const file = files[0];
+                    if (file.size > 200 * 1024 * 1024) {
+                        setStatus('文件超过 200MB 限制', 'error');
+                        fileInput.value = '';
+                        return;
+                    }
+                    selectedFile = file;
+                    updateFileUI();
+                    setStatus(`已选择: ${file.name}`, 'success');
+                    messageInput.value = '';
+                    autoResize();
+                } else {
+                    clearFile();
+                }
+            });
+
+            messageInput.addEventListener('input', function() {
+                if (this.value.trim() && selectedFile) {
+                    clearFile();
+                    setStatus('已切换为文本输入', '');
+                }
+                autoResize();
+            });
+
+            compareToggle.addEventListener('click', toggleCompare);
+
+            modelSelectBtn.addEventListener('click', toggleModelDropdown);
+
+            modelDropdown.querySelectorAll('.drop-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const model = this.dataset.model;
+                    if (isCompareMode) {
+                        toggleModelSelection(model);
+                    } else {
+                        selectedModels = [model];
+                        updateModelDropdownUI();
+                        setStatus(`切换到 ${model}`, '');
+                        closeAllDropdowns();
+                    }
+                });
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeAllDropdowns();
+                }
+            });
+
+            // ---------- 初始化 ----------
+            selectedModels = [...ALL_MODELS];
+            // 加载示例数据，取代空状态
+            loadSampleData();
+            setStatus('就绪', '');
+            apiUrlInput.value = 'http://127.0.0.1:8080';
+            updateModelDropdownUI();
+            setTimeout(autoResize, 50);
+
+            window.clearResults = handleClear;
+            console.log('🌟 文本分类专家已启动 (自适应 + 示例数据)');
+        })();
+    </script>
+
+</body>
+</html>

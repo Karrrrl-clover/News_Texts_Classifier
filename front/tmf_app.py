@@ -1,7 +1,7 @@
 """
 tmf_app - Streamlit 用户界面
 
-Author: 骆昊
+Author: KClover
 Version: 0.0.1
 """
 import sys
@@ -10,6 +10,7 @@ from pathlib import Path
 import streamlit as st
 import requests
 from loguru import logger
+from sympy import false
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_URL = "http://127.0.0.1:8080"
@@ -26,6 +27,7 @@ logger.add(
     catch=True,          # 防止日志写入失败导致应用崩溃
     compression='zip',   # 当日志触发切分时旧的日志文件会被自动压缩
 )
+
 
 def get_class_label(text, model):
     """获取标签类别"""

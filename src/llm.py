@@ -3,7 +3,7 @@
 文件:llm.py
 IDE:PyCharm
 时间:2026/6/28 18:12
-作者:Kclover
+作者:KClover
 
 描述:
     TODO:
@@ -41,7 +41,7 @@ def classify_text(text_to_classify: str):
     
     示例：5
     用户输入：你好，早上好 
-    回答：不认识（不在预设分类之中）
+    回答：Unknown
     '''
 
     # API接口的地址
